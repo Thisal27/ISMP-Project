@@ -87,6 +87,26 @@
 
   /* A comfortable thumb target for warehouse staff on a phone (NFR-USE-02). */
   --touch-target: 44px;
+
+  /* Motion. One curve for anything entering, leaving or responding to a press:
+     it starts fast, so the interface reacts the instant the user acts, and
+     settles gently. The built-in `ease-out` is too weak to read as either.
+     Every animation in the app takes this rather than its own cubic-bezier. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Shared entrance keyframes. `from` only, so each animates to whatever the
+   element's own rule says and leaves nothing behind afterwards - a card that
+   has finished rising can still lift on hover. */
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 *,
@@ -154,6 +174,9 @@ p:last-child { margin-bottom: 0; }
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Staggered entrances hold their hidden first frame through the delay, so
+       the delay has to go too or content would blink in late. */
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }

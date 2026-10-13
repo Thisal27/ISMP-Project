@@ -15,6 +15,7 @@ import Icon from './Icon';
 // toast library either - this is a list, a timer and a live region.
 
 const DISMISS_MS = 5000;
+const EXIT_MS = 200;
 
 const GLYPH = {
   success: 'check',
@@ -48,7 +49,15 @@ const ToastProvider = ({ children }) => {
       clearTimeout(timer);
       timers.current.delete(id);
     }
-    setToasts((current) => current.filter((toast) => toast.id !== id));
+
+    // Marked as leaving first so it can animate out, then removed once the
+    // transition in shell.css (.toast--leaving) has finished.
+    setToasts((current) =>
+      current.map((toast) => (toast.id === id ? { ...toast, leaving: true } : toast))
+    );
+    setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, EXIT_MS);
   }, []);
 
   const notify = useCallback(
@@ -81,7 +90,7 @@ const ToastProvider = ({ children }) => {
           read. Errors are announced by their own Alert, which is role="alert". */}
       <div className="toast-stack" role="status" aria-live="polite" aria-relevant="additions">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`toast toast--${toast.tone}`}>
+          <div key={toast.id} className={`toast toast--${toast.tone}${toast.leaving ? ' toast--leaving' : ''}`}>
             <Icon name={GLYPH[toast.tone] || 'info'} className="toast__glyph" />
 
             <div className="toast__body">

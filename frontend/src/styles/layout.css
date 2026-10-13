@@ -130,6 +130,20 @@
   padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
 }
 
+/* The sign-in screen is seen once per session, so it can afford a slower
+   entrance than anything inside the application: the logo, then the form, then
+   the photograph fading up behind them. */
+.auth-panel__brand,
+.auth-panel {
+  animation: rise-in 500ms var(--ease-out) backwards;
+}
+
+.auth-panel { animation-delay: 80ms; }
+
+.auth-photo__media {
+  animation: fade-in 700ms var(--ease-out);
+}
+
 /* Anchored right so the products stay in frame when the column is narrow.
    The white gradient on top fades the photograph's left edge into the panel
    beside it, so there is no seam between the two. */

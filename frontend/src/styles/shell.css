@@ -267,6 +267,13 @@
   min-width: 0;
 }
 
+/* Each screen fades in as the route changes, so the content does not snap from
+   one page to the next. Opacity only and short: navigation happens too often
+   for anything that moves. */
+.app-shell__main > * {
+  animation: fade-in 180ms var(--ease-out);
+}
+
 /* --- Dashboard grid ---
    Four columns. A row has to add up to exactly 4 or the layout wraps leaving
    holes, so every span class below is used in a set that totals four.
@@ -278,6 +285,22 @@
   gap: 1rem;
   align-items: start;
 }
+
+/* The cards rise in one after another rather than all at once, which reads as
+   the dashboard assembling in reading order. 40ms apart and capped at the
+   eighth card, so the last one is in place well under half a second after the
+   first; `backwards` holds each card hidden through its own delay. */
+.widget-grid > * {
+  animation: rise-in 300ms var(--ease-out) backwards;
+}
+
+.widget-grid > :nth-child(2) { animation-delay: 40ms; }
+.widget-grid > :nth-child(3) { animation-delay: 80ms; }
+.widget-grid > :nth-child(4) { animation-delay: 120ms; }
+.widget-grid > :nth-child(5) { animation-delay: 160ms; }
+.widget-grid > :nth-child(6) { animation-delay: 200ms; }
+.widget-grid > :nth-child(7) { animation-delay: 240ms; }
+.widget-grid > :nth-child(n + 8) { animation-delay: 280ms; }
 
 .widget-grid__half { grid-column: span 2; }
 .widget-grid__three { grid-column: span 3; }
@@ -346,12 +369,21 @@
   box-shadow: var(--shadow);
   color: inherit;
   text-decoration: none;
-  transition: box-shadow 160ms ease, transform 160ms ease;
+  transition: box-shadow 160ms ease, transform 160ms var(--ease-out);
 }
 
-.stat-card:hover {
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
+/* The lift is for a mouse only: on a touch screen :hover fires on tap and
+   sticks, leaving the card raised after the finger has gone. */
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+}
+
+/* A card that is a link gives under the press, like a button. */
+a.stat-card:active {
+  transform: scale(0.98);
 }
 
 .stat-card--static:hover {
@@ -519,14 +551,21 @@
   box-shadow: var(--shadow);
   color: inherit;
   text-decoration: none;
-  transition: box-shadow 160ms ease, transform 160ms ease;
+  transition: box-shadow 160ms ease, transform 160ms var(--ease-out);
 }
 
 /* Only a widget that is itself a link lifts on hover. A widget that merely
    contains links must not, or the whole panel appears clickable when it is not. */
-a.widget:hover {
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  a.widget:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+}
+
+/* After the hover rule, so the press wins while the pointer is still over it. */
+a.widget:active {
+  transform: scale(0.98);
 }
 
 .widget__head {
@@ -582,8 +621,24 @@ a.widget:hover {
 /* Coloured here rather than in SVG attributes: var() in a presentation
    attribute is not reliable across browsers, but in a stylesheet it is. */
 .gauge__track { stroke: var(--line); }
-.gauge__arc { stroke: var(--brand); }
+.gauge__arc {
+  stroke: var(--brand);
+  /* The arc draws itself from empty to its value once, as the card settles, so
+     the figure reads as a measurement being taken. 327 is the ring's
+     circumference (2 x pi x 52, from Gauge.jsx). */
+  animation: gauge-draw 600ms var(--ease-out) 150ms backwards;
+}
 .gauge__arc--alert { stroke: var(--danger); }
+
+@keyframes gauge-draw {
+  from { stroke-dasharray: 0 327; }
+}
+
+/* Meters and department bars fill from the left the same way. clip-path rather
+   than width, so the fill is revealed without re-laying-out the row. */
+@keyframes bar-fill {
+  from { clip-path: inset(0 100% 0 0); }
+}
 
 .gauge__value {
   fill: var(--ink);
@@ -635,6 +690,7 @@ a.widget:hover {
   height: 100%;
   border-radius: var(--pill);
   background: var(--brand);
+  animation: bar-fill 600ms var(--ease-out) 150ms backwards;
 }
 
 .meter__fill--overdue { background: var(--danger); }
@@ -703,6 +759,7 @@ a.widget:hover {
   height: 100%;
   border-radius: var(--pill);
   background: var(--accent);
+  animation: bar-fill 600ms var(--ease-out) 150ms backwards;
 }
 
 .dept-bar__value {
@@ -830,7 +887,8 @@ a.widget:hover {
   background: var(--surface);
   box-shadow: var(--shadow-hover);
   pointer-events: auto;
-  animation: toast-in 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: toast-in 200ms var(--ease-out);
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
 }
 
 @keyframes toast-in {
@@ -838,6 +896,13 @@ a.widget:hover {
     opacity: 0;
     transform: translateX(1rem) scale(0.98);
   }
+}
+
+/* Leaves the way it came. The 200ms is the same number ToastProvider.jsx waits
+   before removing the toast - change one and change the other. */
+.toast--leaving {
+  opacity: 0;
+  transform: translateX(1rem) scale(0.98);
 }
 
 .toast--success { border-left-color: var(--ok); }
@@ -1043,7 +1108,7 @@ a.widget:hover {
   transform-origin: top right;
   opacity: 0;
   transform: translateY(-6px) scale(0.97);
-  transition: opacity 160ms ease, transform 160ms cubic-bezier(0.2, 0.8, 0.3, 1);
+  transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
 }
 
 .profile-menu__panel--shown {
